@@ -44,26 +44,26 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Terraform Init
-        run:
-          cd infra && terraform init \
+        run: |
+          terraform init -chdir=infra \
             -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" \
             -backend-config="key=${{ github.event.repository.name }}" \
             -backend-config="region=${{ inputs.aws-region }}" \
             -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
       - name: Terraform Validate
-        run:  terraform validate
+        run: terraform -chdir=infra validate
 
       - name: Terraform Plain
         id: terraform-plan
-        run: cd infra &&
-          terraform workspace select $ {{ inputs.environment }} || terraform workspace new ${{ inputs.environment}} &&
-          terraform plan -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
+        run: |
+          terraform -chdir=infra workspace select ${{ inputs.environment }} || terraform -chdir=infra workspace new ${{ inputs.environment}}
+          terraform -chdir=infra plan -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         id: terraform-apply
-        run: cd infra &&
-          terraform workspace select $ {{ inputs.environment }} || terraform workspace new ${{ inputs.environment}} &&
-          terraform apply "${{ inputs.environment }}.plan"
+        run: |
+          terraform -chdir=infra workspace select ${{ inputs.environment }} || terraform -chdir=infra workspace new ${{ inputs.environment}}
+          terraform -chdir=infra apply "${{ inputs.environment }}.plan"
 
 ## powered by jcfalves II
